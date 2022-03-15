@@ -1,0 +1,3 @@
+[submodule "webadmin/drjs"]
+	path = webadmin/drjs
+	url = git@github.com:fredchristianson/drjs.git

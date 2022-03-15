@@ -1,0 +1,14 @@
+{
+    "name": "drjs",
+    "type": "module",
+    "version": "0.0.1",
+    "description": "javascript library for browsers and node.",
+    "scripts": {
+        "start": "echo \"Nothing to run",
+        "test": "node test/run-all.js"
+      },
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fredchristianson/drjs.git"
+      }
+}

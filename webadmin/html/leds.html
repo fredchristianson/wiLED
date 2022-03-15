@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+        <link rel="stylesheet" href="../css/drjs.css?v=2"/>
+        <link rel="stylesheet" href="../css/ledapp.css?v=4"/>
+        <style>
+
+        </style>
+    </head>
+
+    <script>
+        const resizeOps = () => {
+            console.log("resise "+window.innerHeight);
+            document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
+          };
+        
+          resizeOps();
+          window.addEventListener("resize", resizeOps);
+    </script>
+<body>
+
+    <body>
+        <header>
+
+        </header>
+        <div id='log-container' class='log hidden'>
+            <button id='log-clear'>Clear</button>
+            <div class='messages'>
+            </div>
+        </div>
+        <section id='strips'>
+            
+        </section>
+        <section id='main-content'>
+            
+        </section>
+
+        <footer>dr</footer>
+    </body>
+</body>
+<script type="module">
+import env from '../drjs/env.js';
+env.load(`env-${location.hostname}.js`);
+import {ConsoleLogWriter} from '../drjs/log-writer-console.js';
+import {Logger,LOG_LEVEL} from '../drjs/logger.js';
+const log = new Logger("LEDs");
+const console = new ConsoleLogWriter(LOG_LEVEL.DEBUG);
+log.debug("logger"); 
+//import {LedApp} from `../js/led-app.js?v=${Date.now()}`;
+const  {default:LedApp} = await import(`../js/led-app.js?v=${Date.now()}`);
+
+const app = new LedApp();
+app.start();
+</script>
+
+</html>

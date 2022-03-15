@@ -1,0 +1,82 @@
+<div class='script edit single-strip'>
+
+
+
+
+   <!-- <label>Script: <select class='select-script'></select></label>-->
+
+    <div class='script'>
+        <div class="page-state select">
+            <div class="script-select">
+                <a href='#sel-all' class="check-all" data-checked='true' data-target=".script-list">all</a> 
+                <a href='#sel-none'  class="check-all" data-target=".script-list"  data-checked='false' >none</a>
+                <a  class="refresh-scripts"  >refresh</a>
+            </div>
+            <div class="script-list">
+
+            </div>
+        </div>
+        <div class='buttons'>
+            <button class='run-script if-no-error'>Run</button>
+            <button class='save-script if-no-error'>Save</button>
+            <button class='load-script'>Reload</button>
+            <button class='delete-script'>Delete</button>
+            <button class='copy-script if-no-error'>Copy</button>
+        </div>
+
+        <div class="single-script" style="display:none">
+    
+            <label>File: <input name='name'/></label>
+    
+            <textarea id='script-text'>
+    
+            </textarea>
+    
+        </div>
+
+        <script type='text/html' class='delete-confirmation'>
+            <div>
+
+                <div class="question">Delete these scripts?</div>
+                <buttons>
+                    <button class="yes" data-value="yes">Yes</button>
+                    <button class="no" data-cancel="true">No</button>
+                </buttons>
+                <ul class="scripts list delete">
+                    <li class="repeat name">
+
+                    </li>
+                </ul>
+            </div>
+        </script>
+
+        <script type='text/html' class='copy-to'>
+            <div>
+
+                <div class="question">Copy 
+                    <ul><li class='script-name repeat'></li></ul>
+                    to:</div>
+                <ul class="scripts list copy">
+                    <li class="repeat sel">
+                        <label>
+                            <input type='checkbox'>
+                            <span class='name'></span>
+                        </label>
+                    </li>
+                </ul>
+                <buttons>
+                    <button class="yes" data-value="yes">Copy</button>
+                    <button class="no" data-cancel="true">Cancel</button>
+                </buttons>
+            </div>
+        </script>
+
+        <script type='text/html' id='script-item'>
+        
+            <div class='item'>
+                <label><input type='checkbox' class="check" /><span class='item name'>name</span></label>
+            </div>
+        </script>
+    </div>
+
+</div>
