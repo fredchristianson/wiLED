@@ -22,8 +22,10 @@ namespace DevRelief
         {
             SET_LOGGER(ScriptLogger);
             m_name = "unnamed";
-            m_durationMsecs = 0;
-            m_frequencyMsecs = 50;
+            
+            m_duration=NULL;
+            m_brightness=NULL;
+            m_frequency=NULL;
             m_startMsecs = 0;
             m_rootContainer = NULL;
         }
@@ -35,6 +37,9 @@ namespace DevRelief
                 m_logger->test("destroy rootcontainer %x",m_rootContainer);
                 m_rootContainer->destroy();
             }
+            if (m_duration) { m_duration->destroy();}
+            if (m_brightness) { m_brightness->destroy();}
+            if (m_frequency) { m_frequency->destroy();}
             m_logger->test("~Script done");
         }
 
@@ -56,14 +61,16 @@ namespace DevRelief
 
         void step() {
             auto lastStep = m_rootContainer->getContext()->getLastStep();
-            if (m_durationMsecs > 0 && (m_startMsecs>0 && m_startMsecs+m_durationMsecs<millis())) {
+            int durationMsecs = getDuration();
+            if (durationMsecs > 0 && (m_startMsecs>0 && m_startMsecs+durationMsecs<millis())) {
                 return; // past duration
             }
-            if (lastStep && m_frequencyMsecs>0 && lastStep->getStartMsecs() + m_frequencyMsecs > millis()) {
-                m_logger->test("too soon %d %d %d",lastStep?lastStep->getStartMsecs():-1, m_frequencyMsecs , millis());
+            int frequencyMsecs = getFrequency();
+            if (lastStep && frequencyMsecs>0 && lastStep->getStartMsecs() + frequencyMsecs > millis()) {
+                m_logger->test("too soon %d %d %d",lastStep?lastStep->getStartMsecs():-1, frequencyMsecs , millis());
                 return; // to soon to start next step
             }
-            m_logger->never("step %d %d %d",lastStep?lastStep->getStartMsecs():-1, m_frequencyMsecs , millis());
+            m_logger->never("step %d %d %d",lastStep?lastStep->getStartMsecs():-1, frequencyMsecs , millis());
             
             m_realStrip->clear();
 
@@ -79,13 +86,40 @@ namespace DevRelief
         void setName(const char * name) { m_name = name; }
         const char * getName() { return m_name;}
 
-        void setDuration(int durationMsecs) { m_durationMsecs = durationMsecs;}
-        int getDuration() { return m_durationMsecs;}
-        void setFrequency(int frequencyMsecs) {
-            m_logger->info("script frequency %d",frequencyMsecs);
-            m_frequencyMsecs = frequencyMsecs;
+        void setDuration(IScriptValue* duration) { 
+            m_logger->never("set duration");
+            m_duration = duration;
         }
-        int getFrequency() { return m_frequencyMsecs;}
+        void setBrightness(IScriptValue* brightness) { 
+            m_logger->never("set brightness");
+            m_brightness = brightness;
+        }
+
+        int getBrightness() {
+
+            int b = m_brightness == NULL ? 40 : m_brightness->getIntValue(m_rootContainer->getContext(),40);
+            m_logger->never("get brightness %d",b);
+            return b;
+        }
+        
+        int getDuration() {
+            int d = m_duration == NULL ? 0 : m_duration->getMsecValue(m_rootContainer->getContext(),0);
+            m_logger->never("get duration %d",d);
+            return d;
+
+        }
+        int getFrequency() {
+            int f = m_frequency == NULL ? 50 : m_frequency->getMsecValue(m_rootContainer->getContext(),50);
+            m_logger->never("get frequncy %d",f);
+            return f;
+
+        }
+
+        void setFrequency(IScriptValue* frequency) {
+            m_logger->never("set frequency");
+
+            m_frequency = frequency;
+        }
 
         ScriptRootContainer* getRootContainer() { 
             if (m_rootContainer == NULL){
@@ -98,8 +132,9 @@ namespace DevRelief
         DRString m_name;
         ScriptRootContainer* m_rootContainer;
         IHSLStrip* m_realStrip;
-        int         m_durationMsecs;
-        int         m_frequencyMsecs;
+        IScriptValue* m_duration;
+        IScriptValue* m_brightness;
+        IScriptValue*  m_frequency;
         int m_startMsecs;
     };
 

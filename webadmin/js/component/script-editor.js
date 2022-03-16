@@ -69,6 +69,7 @@ export class ScriptEditorComponent extends ComponentBase{
 
     onChange() {
         this.changed = true;
+        DOM.setProperty('.script .run-script','disabled',true);
         DOM.setProperty('.script .save-script','disabled',false);
         DOM.setProperty('.script .load-script','disabled',false);
         if (this.jsonError) {

@@ -84,11 +84,10 @@ namespace DevRelief {
                 Script* script = new Script();
                 m_logger->debug("set name");
                 script->setName(scriptJson->getString("name","unnamed"));
-                m_logger->debug("set duration");
-                script->setDuration(scriptJson->getInt("duration",0));
-                m_logger->debug("set frequency");
-                script->setFrequency(scriptJson->getInt("frequency",50));
-                m_logger->debug("get elements");
+                m_logger->debug("set duration %x",scriptJson->getPropertyValue("duration"));
+                script->setDuration(ScriptValue::create(scriptJson->getPropertyValue("duration"),NULL));
+                script->setBrightness(ScriptValue::create(scriptJson->getPropertyValue("brightness"),NULL));
+                script->setFrequency(ScriptValue::create(scriptJson->getPropertyValue("frequency"),NULL));
                 JsonArray* elements = scriptJson->getArray("elements");
                 m_logger->debug("get container");
                 ScriptRootContainer * container = script->getRootContainer();

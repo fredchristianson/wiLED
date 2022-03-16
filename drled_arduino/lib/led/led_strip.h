@@ -269,6 +269,8 @@ class CompoundLedStrip : public DRLedStrip {
             }
         }
 
+        DRLedStrip* getStripNumber(int i) { return strips[i];}
+
         virtual CompoundLedStrip* getCompoundLedStrip() { return this;}
 
     private:

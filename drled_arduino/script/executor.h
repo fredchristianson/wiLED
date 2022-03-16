@@ -96,13 +96,30 @@ namespace DevRelief {
                 }
                 m_logger->never("\tm_script->setp()");
                 //m_ledStrip->clear();
+                int brightness = m_script->getBrightness();
+                setStripBrightness(brightness);
                 m_script->step();
                 //m_ledStrip->show();
                 m_logger->never("\tfinished m_script->step()");
 
             }
         private:
-
+            void setStripBrightness(int brightness){
+                if (m_compoundStrip == NULL) {return;}
+                const PtrList<LedPin*>& pins = Config::getInstance()->getPins();
+                for(int i=0;i<pins.size();i++){
+                    LedPin* pin = pins.get(i);
+                    if (pin != NULL && pin->maxBrightness>0) {
+                        int bright = brightness < pin->maxBrightness ? brightness : pin->maxBrightness;
+                        DRLedStrip* strip = m_compoundStrip->getStripNumber(i);
+                        if (strip) {
+                            m_logger->debug("set strip bright %d",bright);
+                            strip->setBrightness(bright);
+                        }
+                    }
+                }
+                
+            }
 
             void setupLeds(Config& config) {
                 m_logger->debug("setup HSL Strip");
@@ -112,6 +129,7 @@ namespace DevRelief {
                 const PtrList<LedPin*>& pins = config.getPins();
                 int pixelPerMeter = pins.size()>0 ? pins[0]->pixelsPerMeter : 30;
                 CompoundLedStrip*  compound = new CompoundLedStrip(pixelPerMeter);
+                m_compoundStrip = compound;
                 int ledCount = 0;
                 pins.each([&](LedPin* pin) {
                     m_logger->debug("\tadd pin 0x%04X %d %d %d",pin,pin->number,pin->ledCount,pin->reverse);
@@ -136,6 +154,7 @@ namespace DevRelief {
             DECLARE_LOGGER();
             DECLARE_CUSTOM_LOGGER(m_periodicLogger);
             Script* m_script;
+            CompoundLedStrip * m_compoundStrip;
             HSLStrip* m_ledStrip;
     };
 
