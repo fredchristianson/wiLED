@@ -33,9 +33,9 @@ class DataLoader {
 
         bool loadJsonFile(const char * path,auto reader) {
             DRFileBuffer buffer;
-            m_logger->always("loadJsonFile %s",path);
+            m_logger->debug("loadJsonFile %s",path);
             if (m_fileSystem.read(path,buffer)){
-                m_logger->always("file: %s",buffer.text());
+                m_logger->debug("file: %s",buffer.text());
                 JsonParser parser;
                 JsonRoot* root = parser.read(buffer.text());
                 if (root) {

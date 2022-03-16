@@ -346,7 +346,7 @@ namespace DevRelief {
             bool isClip() const { return m_properties->isClip();}
             bool isWrap() const { return m_properties->isWrap();}
             bool isCenter() const { return m_properties->isCenter();}
-            bool isFlow() const { return m_properties->isFlow() && !m_properties->hasStrip() && !m_properties->useRootStrip() && (hasOffset() || hasLength());}
+            bool isFlow() const { return m_properties->isFlow() && !m_properties->hasStrip() && !m_properties->useRootStrip() && !m_properties->isCover() && (hasOffset() || hasLength());}
             bool isCover() const { return m_properties->isCover();}
             bool isReverse() const { return m_properties->isReverse();}
             bool isPositionAbsolute() const { return m_properties->useRootStrip();}

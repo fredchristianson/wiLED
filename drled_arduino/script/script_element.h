@@ -147,7 +147,7 @@ namespace DevRelief {
 
             void fromJson(JsonObject* json) override {
                 ScriptElement::fromJson(json);
-                m_logger->never("PositionableElement.fromJson %s %x %x",getType(),this,m_position);
+                m_logger->debug("PositionableElement.fromJson %s %x %x",getType(),this,m_position);
                 LogIndent li;
                 positionFromJson(json);
                 valuesFromJson(json);
@@ -173,23 +173,23 @@ namespace DevRelief {
                 }
             }
             virtual void positionFromJson(JsonObject* json){
-                m_logger->never("PositionableElement.positionFromJson() %x %x",this,m_position);
+                m_logger->debug("PositionableElement.positionFromJson() %x %x",this,m_position);
 
-                m_logger->never("positionFromJson %s",getType());
+                m_logger->debug("positionFromJson %s",getType());
                 if (isPositionable()) {
                     IElementPosition*pos = getPosition();
                     if (pos == NULL) {
                         m_logger->error("IPositionable does not have a getPosition() %s",getType());
                     } else {
-                        m_logger->never("\t clip %x %d",this,pos->isClip());
+                        m_logger->debug("\t Wrap %x %d",this,pos->isWrap());
                         pos->fromJson(json);
-                        m_logger->never("\t clip %x %d",this,pos->isClip());
+                        m_logger->debug("\t Wrap %x %d",this,pos->isWrap());
                     }
                 } else {
-                    m_logger->never("\tnot positionable");
+                    m_logger->debug("\tnot positionable");
                 }
-                m_logger->never("\treverse %d",m_position->isReverse());
-                m_logger->never("\tunit %d",m_position->getUnit());
+                m_logger->debug("\treverse %d",m_position->isReverse());
+                m_logger->debug("\tunit %d",m_position->getUnit());
             }
         private:
             IElementPosition* m_position;

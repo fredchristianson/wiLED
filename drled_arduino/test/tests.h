@@ -44,7 +44,7 @@ namespace DevRelief {
             SET_LOGGER(TestLogger);
             LogConfig::Instance()->setTesting(true);
             EspBoard.delayMsecs(1000); // wait for serial logger to settle
-            m_logger->always("force logging to allocate static buffers in order to detect real memory leaks: %f %d %s %d",.123,4567,"abc",true);
+            m_logger->"force logging to allocate static buffers in order to detect real memory leaks: %f %d %s %d",.123,4567,"abc",true);
             int startHeap = EspBoard.getFreeHeap();
             m_logger->showMemory();
             bool success = true;

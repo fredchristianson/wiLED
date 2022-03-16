@@ -77,7 +77,7 @@ class HttpServer {
         }
 
         void routeBracesGet(const char * uri, HttpHandler httpHandler){
-            m_logger->always(LM("routing GET to Uri %s"),uri);
+            m_logger->debug(LM("routing GET to Uri %s"),uri);
             auto server = m_server;
             auto handler = httpHandler;
             m_server->on(UriBraces(uri),HTTP_GET,[this,handler,server](){
@@ -99,7 +99,7 @@ class HttpServer {
         }
 
         void routeBracesDelete(const char * uri, HttpHandler httpHandler){
-            m_logger->always(LM("routing DELETE to Uri %s"),uri);
+            m_logger->debug(LM("routing DELETE to Uri %s"),uri);
             auto server = m_server;
             auto handler = httpHandler;
             m_server->on(UriBraces(uri),HTTP_DELETE,[this,handler,server](){

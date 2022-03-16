@@ -14,6 +14,7 @@ namespace DevRelief{
                 SET_LOGGER(ScriptHSLStripLogger);
                 m_offset = 0;
                 m_length = 0;
+                m_relativeOffset = 0;
                 m_overflow = OVERFLOW_CLIP;
                 m_parent = NULL;
                 m_parentLength = 0;
@@ -134,6 +135,7 @@ namespace DevRelief{
                 m_reverse = pos->isReverse();
                 
                 m_position = pos;
+                m_relativeOffset = 0;
                 m_flowIndex = 0; // update() called start start of draw().  begin re-flowing children at 0
                 LogIndent li(m_logger,"HSLStrip.updatePosition",NEVER_LEVEL);
                 m_logger->never("m_unit before update %d",m_unit);
@@ -143,7 +145,7 @@ namespace DevRelief{
                     m_parent = context->getRootStrip();
                 }
                 m_parentLength = m_parent->getLength();
-                int parentOffset = 0;
+                int relativeOffset = 0;
                 int strip = -1;
                 // todo: combining strip and offset or flow has invalid results
                 if (pos->hasStrip()) {
@@ -158,7 +160,7 @@ namespace DevRelief{
                     m_parentLength = pin->ledCount;
                     for(int i=0;i<strip;i++) {
                         auto p = config->getPin(i);
-                        parentOffset += p->ledCount;
+                        relativeOffset += p->ledCount;
                     }
                 }
                 if (pos->isCover()) {
@@ -169,62 +171,49 @@ namespace DevRelief{
                     m_offset = pos->hasOffset() ? unitToPixel(pos->getOffset(),strip) : 0;
                     if (pos->isCenter()) {
                         int margin = (m_parentLength - m_length)/2;
-                        m_offset += margin;
+                        relativeOffset += margin;
                     } else {
                         if (pos->isFlow()) {
-                            m_offset += m_parent->getFlowIndex();
+                            relativeOffset += m_parent->getFlowIndex();
                         } else {
                         }
                     }
                 }
-                m_offset += parentOffset;
+                m_relativeOffset = relativeOffset;
                 m_overflow = pos->getOverflow();
+                m_logger->debug("Overflow %d (%d/%d)",m_overflow,m_offset,m_length);
                 if (pos->isFlow()) {
-
-                    m_parent->setFlowIndex(m_offset+m_length);
+                    m_parent->setFlowIndex(m_relativeOffset+m_length);
                 }
-                
+                m_logger->debug("offset=%d relativeOffset=%d length=%d  parentLength=%d  op=%d unit=%d overflow=%d",m_offset,m_relativeOffset,m_length,m_parentLength,pos->getHSLOperation(),m_unit,m_overflow);
             }
 
             virtual bool isPositionValid(int index) {
                 
                 if (m_parent == NULL ) { return false;}
-                if (m_overflow != OVERFLOW_CLIP) { return true;}
+                if (m_overflow != OVERFLOW_CLIP) { 
+                    return true;
+                }
                 return index >= 0 || index < m_length;
             }
 
             virtual int translateIndex(int origIndex){
                int index = m_reverse ? (m_length-origIndex-1) : origIndex;
+                index = m_offset+index;
                 if (m_overflow == OVERFLOW_WRAP) {
-                    if (index<0) { index = m_length- (index%m_length)-1;}
-                    else { index = (index %m_length);}
+                    index = index%m_length;
+                    if (index<0) { index = m_length-index-1;}
+                    m_logger->debug("wrap %d/%d %d %d ==> %d",m_offset,m_relativeOffset, m_length,origIndex,index);
                 } else if (m_overflow == OVERFLOW_CLIP) {
                     // shouldn't happen since isPositionValid() was false if tidx out of range
-                    if (index < 0) { index = 0;}
-                    if (index >= m_length) {index = m_length-1;}
+                    if (index < m_offset) { index = m_offset;}
+                    if (index >= m_offset+m_length) {index = m_offset+m_length-1;}
                 }
-                int tidx = m_offset + index;
-                m_logger->debug("translated index  %d (%d)  offset=%d length=%d ==>%d",origIndex,index,m_offset, m_length,tidx);
+                int tidx = index + m_relativeOffset;
+                m_logger->never("translated index  %d (%d)  offset=%d length=%d ==>%d",origIndex,index,m_offset, m_length,tidx);
                 return tidx;
             }
 
-            virtual int oldtranslateIndex(int origIndex){
-               int index = reverse ? (m_length-origIndex-1) : origIndex;
-                int tidx = index+m_offset;
-                if (m_overflow == OVERFLOW_WRAP) {
-                    if (index<m_offset) { tidx = m_length- (index%m_length);}
-                    else { tidx = m_offset + (index %m_length);}
-                } else if (m_overflow == OVERFLOW_CLIP) {
-                    // shouldn't happen since isPositionValid() was false if tidx out of range
-                    if (tidx < m_offset) { tidx = m_offset;}
-                    if (tidx >= m_offset+m_length) {tidx = m_offset+m_length-1;}
-                }
-                m_logger->never("translated index  %d (%d)  offset=%d length=%d %d==>%d",origIndex,index,m_offset, m_length);
-                if (m_reverse) {
-                   // tidx = m_length - tidx -1 + m_offset;
-                } 
-                return tidx;
-            }
             
             virtual HSLOperation translateOp(HSLOperation op) {
                 return op;
@@ -234,9 +223,11 @@ namespace DevRelief{
             IElementPosition* m_position;
             int m_parentLength;
             int m_length;
-            int m_offset;
+            int m_relativeOffset;  // offset relative to parent
+            int m_offset;  // offset relative to m_relativeOffset
             int m_flowIndex;
             bool m_reverse;
+
 
             PositionUnit m_unit;
             PositionOverflow m_overflow;
@@ -276,6 +267,7 @@ namespace DevRelief{
 
 
             void updatePosition(IElementPosition * pos, IScriptContext* context) override  {
+                m_logger->debug(LM("RootHSLStrip.updatePosition %d %d"),pos->isWrap(),pos->isClip());
                 m_position = pos;
                 m_flowIndex = 0; // update() called start start of draw().  begin re-flowing children at 0
                 m_parentLength = m_base->getCount();
@@ -290,17 +282,18 @@ namespace DevRelief{
                 } else {
                     m_length = m_parentLength;
                 }
-                m_logger->debug("\len %d",m_length);
+                m_logger->debug("root len %d",m_length);
                 if (pos->hasOffset()) {
                     m_offset = unitToPixel(pos->getOffset());
                 } else {
                     m_offset = 0;
                 }
                 m_reverse = pos->isReverse();
+                
 
                 m_logger->debug("\toffset %d",m_offset);
                 m_overflow = pos->getOverflow();
-                m_logger->never("\toverflow %d",m_overflow);
+                m_logger->debug("\toverflow %d",m_overflow);
                 m_logger->debug("\toverflow=%d offset=%d length=%d unit=%d",m_overflow,m_offset,m_length,m_unit);
             }
 

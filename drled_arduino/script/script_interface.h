@@ -2,6 +2,7 @@
 #define SCRIPT_STATUS_H
 
 #include "../lib/led/led_strip.h"
+#include "../lib/json/json_interface.h"
 
 namespace DevRelief{
     typedef enum PositionUnit
@@ -129,6 +130,8 @@ namespace DevRelief{
             virtual double getDelayValue(IScriptContext* ctx)=0;
             virtual double getCompleteValue(IScriptContext* ctx)=0;
             virtual bool toJson(JsonObject* json) const=0;
+            virtual PositionUnit getUnit() const=0;
+            virtual void setUnit(PositionUnit unit)  = 0;
     };
 
     class IAnimationEase {
@@ -146,6 +149,7 @@ namespace DevRelief{
         virtual IValueAnimator* clone(IScriptContext* ctx)=0;
         virtual void update(IScriptContext* ctx)=0;
         virtual bool toJson(JsonObject* json) const=0;
+        virtual PositionUnit getUnit() const=0;
     };
 
     class IHSLStripLED {
@@ -319,11 +323,12 @@ namespace DevRelief{
     class ScriptPatternElement
     {
     public:
-        ScriptPatternElement(IScriptValue* repeatCount, PositionUnit repeatUnit, IScriptValue* value)
+        ScriptPatternElement(IScriptValue* repeatCount, PositionUnit unit, IScriptValue* value)
         {
             m_value = value;
             m_repeatCount = repeatCount;
             m_pixelCount = 0;
+            m_unit = unit;
         }
         virtual ~ScriptPatternElement()
         {
@@ -335,6 +340,7 @@ namespace DevRelief{
 
         int getPixelCount() const { return m_pixelCount;}
         IScriptValue* getValue() const { return m_value;}
+        PositionUnit getUnit() const { return m_unit;}
         virtual void destroy() { delete this;}
 
         IJsonElement* toJson(JsonRoot* jsonRoot) { 
@@ -353,6 +359,7 @@ namespace DevRelief{
         IScriptValue *m_value;
         IScriptValue* m_repeatCount;
         int m_pixelCount;
+        PositionUnit m_unit;
     };
 
     typedef enum PatternExtend {

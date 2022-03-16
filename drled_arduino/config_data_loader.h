@@ -76,7 +76,7 @@ class ConfigDataLoader : public DataLoader {
         }
 
         DRString getScriptName(const char * filename, const char * defaultName) {
-            m_logger->always("getScriptName %s",filename);
+            m_logger->debug("getScriptName %s",filename);
             DRString path = getScriptPath(filename);
             DRBuffer buf(200);
             int len = m_fileSystem.readBinary(path,buf.reserve(199),199);
@@ -84,15 +84,15 @@ class ConfigDataLoader : public DataLoader {
                 buf.setLength(len);
                 char* text = (char*)buf.data();
                 text[len-1] = 0;
-                m_logger->always("find name in %s",text);
+                m_logger->debug("find name in %s",text);
                 JsonParser parser;
                 DRString name = findName(text);
-                m_logger->always("found name %s",name.text());
+                m_logger->debug("found name %s",name.text());
                 if (name.getLength()>0) {
                     return name;
                 }
             }
-            m_logger->always("use default name %s",defaultName);
+            m_logger->debug("use default name %s",defaultName);
 
             return defaultName;
             

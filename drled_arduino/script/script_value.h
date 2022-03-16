@@ -732,7 +732,11 @@ namespace DevRelief
             m_animator->update(ctx);
 
             double pct = m_animator->getRangeValue(ctx);
-            UnitValue value = m_interpolation->getValue(pct,ctx,m_elements,m_pixelCount,defaultValue,defaultUnit); 
+            PositionUnit unit = m_animator->getUnit();
+            if (unit == POS_UNSET) {
+                unit = defaultUnit;
+            }
+            UnitValue value = m_interpolation->getValue(pct,ctx,m_elements,m_pixelCount,defaultValue,unit); 
             m_logger->never("patternvalue: %f",value.getValue());
             //UnitValue val = getValueAt(ctx,  value,defaultValue,POS_INHERIT);
             return value;
@@ -790,6 +794,7 @@ namespace DevRelief
 
         
         void setInterpolation(PatternInterpolation*interpolation) { m_interpolation = interpolation;}
+
     protected:
         StepWatcher m_watcher;
         PatternInterpolation* m_interpolation;
@@ -837,7 +842,8 @@ namespace DevRelief
     class SmoothInterpolation : public PatternInterpolation {
         public:
             SmoothInterpolation() :PatternInterpolation() {
-                
+                m_logger->always("SmoothInterpolation ");
+                 
             }
             virtual ~SmoothInterpolation() {
 
@@ -845,7 +851,7 @@ namespace DevRelief
 
             UnitValue getValue(double pct, IScriptContext* ctx, LinkedList<ScriptPatternElement*>& elements,int pixelCount, double defaultValue, PositionUnit defaultUnit) {
                 if (m_stepWatcher.isChanged(ctx)) {
-                    m_logger->never("update SmoothInterpolation segments");
+                    m_logger->always("update SmoothInterpolation segments");
                     setupSegments(elements,pixelCount);
                 }
                 InterpolationSegment* segment = findSegment(pct,elements);
@@ -1518,8 +1524,13 @@ namespace DevRelief
     IScriptValue* ScriptValue::createPattern(JsonArray* pattern, bool smooth, bool repeat, bool unfold, JsonObject* json){
         
             PatternValue* patternValue = new PatternValue();
+            PositionUnit unit = POS_UNSET;
             pattern->each([&](IJsonElement*elemenValue){
-                patternValue->addElement(createPatternElement(elemenValue));
+                auto patternElement = createPatternElement(elemenValue);
+                if (unit == POS_UNSET) {
+                    unit = patternElement->getUnit();
+                }
+                patternValue->addElement(patternElement);
             });
             IAnimationEase* ease = json ? createEase(json) : NULL;
 
@@ -1537,6 +1548,7 @@ namespace DevRelief
             } else {
                 range = new StretchPatternRange(patternValue,unfold);
             }
+            range->setUnit(unit);
             IAnimationDomain* domain = json ? createDomain(json,range) : new ContextPositionDomain();
             IValueAnimator* animator = new Animator(domain,range,ease);
             patternValue->setAnimator(animator);
@@ -1614,7 +1626,7 @@ namespace DevRelief
         ScriptPatternElement* element = NULL;
         IScriptValue * val=NULL;
         IScriptValue* count = NULL;
-        PositionUnit unit = POS_PIXEL;
+        PositionUnit unit = POS_UNSET;
         if (json->isObject()) {
             JsonObject* obj = json->asObject();
             if (obj->getPropertyValue("value")){
@@ -1631,7 +1643,7 @@ namespace DevRelief
                 LinkedList<DRString> valCount;
                 Util::split(str,'x',valCount);
                 val = createFromString(valCount.get(0));
-                
+                unit = stringToUnit(valCount.get(0));
                 if (valCount.size()==2) {
                     const char * countAndUnit = valCount.get(1).text();
                     count = new ScriptStringValue(countAndUnit);

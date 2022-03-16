@@ -31,6 +31,9 @@ typedef enum HSLOperation {
     INHERIT=998,
     UNSET=999
 };
+
+const int16_t HUE_UNSET=9999;
+
 static const char * HSLOPTEXT[]={"replace","add","subtract","average","min","max"};
 
 const char * HSLOpToText(HSLOperation op) {
@@ -375,7 +378,14 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
             if (index == 0) {
                 m_logger->never("hue %d %d",index,hue);
             }
-            m_hue[index] = clamp(0,359,performOperation(op,m_hue[index],hue));
+            //m_hue[index] = clamp(0,359,performOperation(op,m_hue[index],hue));
+            int16_t h = performOperation(op,m_hue[index],hue);
+            if (h<0) {
+                h = 360-(hue%360);
+            }
+            h = h % 360;
+            m_hue[index] = h;
+
             if (index == 0) {
                 //m_logger->periodicNever(ERROR_LEVEL,5000,"setHue %d %d %d",index,hue,op);
             }
@@ -386,7 +396,12 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
                 return;
             } 
             if (saturation<0 || saturation>100) { return;}
+            int s = m_saturation[index];
+            if (m_saturation[index] == -1) {
+                m_saturation[index] = 100; // set default before doing op
+            }
             m_saturation[index] = clamp(0,100,performOperation(op,m_saturation[index],saturation));
+            m_logger->debug("Saturation op=%d index=%d %d=>%d",op,index,s,m_saturation[index]);
         }
 
         void setLightness(int index, int16_t lightness, HSLOperation op=REPLACE) {
@@ -398,6 +413,9 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
             } 
             
             if (lightness<0 || lightness>100) { return;}
+            if (m_lightness[index] == -1) {
+                m_lightness[index] = 50; // set default before doing op
+            }
             int16_t l = performOperation(op,m_lightness[index],lightness);
             m_logger->never("op %d %d  %d->%d",op,m_lightness[index],lightness,l);
             m_lightness[index] = clamp(0,100,l);
@@ -414,7 +432,7 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
             reallocHSLData(count);
             m_logger->debug("clear HSL values");
             for(int i=0;i<count;i++) {
-                m_hue[i] = -1;
+                m_hue[i] = HUE_UNSET;
             }
             //memset(m_hue,-1,sizeof(int16_t)*count);
             memset(m_saturation,-1,sizeof(int8_t)*count);
@@ -428,7 +446,7 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
                 int hue = m_hue[idx];
                 int sat = m_saturation[idx];
                 int light = m_lightness[idx];
-                if (hue < 0) {
+                if (hue == HUE_UNSET) {
                     light = 0;
                 }
                 if (false && idx < 20) {
@@ -490,7 +508,7 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
         int16_t performOperation(HSLOperation op, int16_t currentValue, int16_t operand)
         {
             if (currentValue < 0) {
-                return operand;
+                return (op == SUBTRACT) ? 0 : operand;
             }
             switch (op)
             {

@@ -17,6 +17,7 @@ namespace DevRelief
             m_high = 0;
             m_unfold = unfold;
             m_lastValue = 0;
+            m_unit = POS_UNSET;
         }
         AnimationRange(double low, double high, bool unfold=false)
         {
@@ -27,6 +28,7 @@ namespace DevRelief
             m_lastPosition = 99999999;
             m_lastValue = low;
             m_unfold = unfold;
+            m_unit = POS_UNSET;
         }
 
         virtual ~AnimationRange() {
@@ -39,6 +41,8 @@ namespace DevRelief
         bool unfold() { return m_unfold;}
         void setUnfold(bool unfold) { m_unfold = true;}
 
+        PositionUnit getUnit() const override { return m_unit;}
+        void setUnit(PositionUnit unit) override { m_unit=unit;}
         double getValue(double position)
         {
             m_logger->never("AnimationRange::getValue");
@@ -79,6 +83,7 @@ namespace DevRelief
         double m_low;
         double m_high;
         bool m_unfold;
+        PositionUnit m_unit;
 
         DECLARE_LOGGER();
     };
@@ -546,7 +551,7 @@ namespace DevRelief
         }
 
         RunState getState() { return m_domain->getState();}
-
+        PositionUnit getUnit() const override { return m_range ? m_range->getUnit() : POS_UNSET;}
         double getRangeValue(IScriptContext* ctx)
         {
             if (m_domain == NULL || m_range==NULL) {

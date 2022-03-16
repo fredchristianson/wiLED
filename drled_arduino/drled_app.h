@@ -261,7 +261,7 @@ namespace DevRelief {
 
 
             m_httpServer->routeBracesDelete( "/api/script/{}",[this](Request* req, Response* resp){
-                m_logger->always("delete script");
+                m_logger->debug("delete script");
                 ScriptDataLoader loader;
                 auto name =req->pathArg(0).c_str();
                 m_logger->debug("delete script %s",name);
