@@ -310,7 +310,7 @@ namespace DevRelief {
                 if (m_hue) {
                     int hue = m_hue->getIntValue(led.getContext(),-1);
                     if (hue != -1) {
-                        m_logger->never("drawLED %d %d",led.getIndex(),hue);
+                        m_logger->debug("drawLED hue %d %d",led.getIndex(),hue);
                         led.setHue(adjustHue(hue));
                     }
                 }
@@ -318,6 +318,7 @@ namespace DevRelief {
                 if (m_lightness) {
                     int lightness = m_lightness->getIntValue(led.getContext(),-1);
                     if (lightness != -1) {
+                        m_logger->debug("set lightness %d - %d",led.getIndex(),lightness);
                         led.setLightness(adjustLightness( lightness));
                     }
                 }

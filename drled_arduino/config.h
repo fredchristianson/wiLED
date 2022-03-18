@@ -68,7 +68,7 @@ namespace DevRelief {
             static void setInstance(Config*cfg) { Config::instance = cfg;}
 
             Config() {
-                SET_LOGGER(ConfigLoaderLogger);
+                SET_LOGGER(ConfigLogger);
                 hostName = HOSTNAME;
                 ipAddress = "unknown";
                 brightness = 40;

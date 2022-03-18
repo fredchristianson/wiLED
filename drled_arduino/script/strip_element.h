@@ -41,16 +41,17 @@ namespace DevRelief
             }
 
             void updatePosition() { 
-                int len = m_parentLength;
-                if (m_position->hasLength()){
-                    UnitValue uv = m_position->getLength();
-                    LogIndent li(m_logger,"MirrorStrip.updatePosition",NEVER_LEVEL);
-                    len = unitToPixel(uv);
-                    m_logger->never("defined len %d  %d %3.3f",len,(int)uv.getUnit(),uv.getValue());
-                }
-                m_lastLed = m_offset+len-1;
-                m_length = len/2;
-                m_logger->never("mirror last=%d len=%d",m_lastLed,m_length);
+                
+                // int len = m_parentLength;
+                // if (m_position->hasLength()){
+                //     UnitValue uv = m_position->getLength();
+                //     LogIndent li(m_logger,"MirrorStrip.updatePosition",NEVER_LEVEL);
+                //     len = unitToPixel(uv);
+                //     m_logger->never("defined len %d  %d %3.3f",len,(int)uv.getUnit(),uv.getValue());
+                // }
+                // m_lastLed = m_offset+len-1;
+                // m_length = len/2;
+                // m_logger->never("mirror last=%d len=%d",m_lastLed,m_length);
             }
 
             void setHue(int16_t hue,int index, HSLOperation op) override {
@@ -90,10 +91,13 @@ namespace DevRelief
                 
             }   
 
+            int getParentLength() override {
+                return m_parent->getLength()/2;
+            }
 
         protected:
             int mirrorIndex(int idx) {
-                return m_lastLed - (idx-m_offset);
+                return m_parent->getLength() - (idx-m_offset-m_relativeOffset);
             }
             friend class MirrorElement;
             int m_lastLed;

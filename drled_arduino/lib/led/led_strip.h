@@ -386,6 +386,9 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
                 h = 360-(hue%360);
             }
             h = h % 360;
+
+            m_logger->debug("Hue %d %d=>%d  op=%d",index,m_hue[index],hue,op);
+
             m_hue[index] = h;
 
             if (index == 0) {
@@ -419,7 +422,7 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
                 m_lightness[index] = 50; // set default before doing op
             }
             int16_t l = performOperation(op,m_lightness[index],lightness);
-            m_logger->never("op %d %d  %d->%d",op,m_lightness[index],lightness,l);
+            m_logger->debug("lightness op %d %d  %d->%d",op,m_lightness[index],lightness,l);
             m_lightness[index] = clamp(0,100,l);
         }
 
@@ -509,7 +512,8 @@ class HSLStrip: public AlteredStrip, public IHSLStrip{
         }
         int16_t performOperation(HSLOperation op, int16_t currentValue, int16_t operand)
         {
-            if (currentValue < 0) {
+            m_logger->debug("HSLStrip.performOperation %d %d %d",op,currentValue,operand);
+            if (currentValue < 0 || currentValue == HUE_UNSET) {
                 return (op == SUBTRACT) ? 0 : operand;
             }
             switch (op)

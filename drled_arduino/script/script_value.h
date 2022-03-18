@@ -250,11 +250,12 @@ namespace DevRelief
         }
 
         DRString toString() { return DRString("Function: ").append(m_name); }
+
         int getMsecValue(IScriptContext* ctx,  int defaultValue) override { 
             if (Util::equal("millis",m_name)) {
                 return millis();
             }
-            return defaultValue;
+            return getFloatValue(ctx,defaultValue);
         }
         bool isNumber(IScriptContext* ctx) const override { return true;}
         
@@ -842,7 +843,7 @@ namespace DevRelief
     class SmoothInterpolation : public PatternInterpolation {
         public:
             SmoothInterpolation() :PatternInterpolation() {
-                m_logger->always("SmoothInterpolation ");
+                m_logger->debug(LM("SmoothInterpolation "));
                  
             }
             virtual ~SmoothInterpolation() {
@@ -851,7 +852,7 @@ namespace DevRelief
 
             UnitValue getValue(double pct, IScriptContext* ctx, LinkedList<ScriptPatternElement*>& elements,int pixelCount, double defaultValue, PositionUnit defaultUnit) {
                 if (m_stepWatcher.isChanged(ctx)) {
-                    m_logger->always("update SmoothInterpolation segments");
+                    m_logger->debug(LM("update SmoothInterpolation segments"));
                     setupSegments(elements,pixelCount);
                 }
                 InterpolationSegment* segment = findSegment(pct,elements);

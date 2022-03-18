@@ -48,7 +48,7 @@ namespace DevRelief{
             IScriptHSLStrip* getParent() const override {  return m_parent;}
 
             void setHue(int16_t hue,int index, HSLOperation op) override {
-                m_logger->debug("ScriptHSLStrip.setHue(%d,%d) strip=%x parent=%x op=%d",hue,index,this,m_parent,translateOp(op));
+                m_logger->debug("ScriptHSLStrip.setHue(%d,%d)",hue,index);
                 if (!isPositionValid(index)) { 
                     m_logger->debug("Invalid index %d, %d",index,m_length);
                     return;
@@ -131,6 +131,7 @@ namespace DevRelief{
             }
 
 
+
             void updatePosition(IElementPosition * pos, IScriptContext* context) override  {
                 m_reverse = pos->isReverse();
                 
@@ -144,7 +145,7 @@ namespace DevRelief{
                 if (pos->isPositionAbsolute()) {
                     m_parent = context->getRootStrip();
                 }
-                m_parentLength = m_parent->getLength();
+                m_parentLength = getParentLength();
                 int relativeOffset = 0;
                 int strip = -1;
                 // todo: combining strip and offset or flow has invalid results
@@ -167,11 +168,13 @@ namespace DevRelief{
                     m_offset = 0;
                     m_length = m_parentLength;
                 } else {
-                    m_length = pos->hasLength() ? unitToPixel(pos->getLength(),strip) : m_parentLength;
+                    m_length = pos->hasLength() ? unitToPixel(pos->getLength(),strip) : m_parentLength-m_parent->getFlowIndex();
+                    m_logger->debug("set length %d %d %d",m_length,m_parentLength,m_parent->getFlowIndex());
                     m_offset = pos->hasOffset() ? unitToPixel(pos->getOffset(),strip) : 0;
                     if (pos->isCenter()) {
                         int margin = (m_parentLength - m_length)/2;
                         relativeOffset += margin;
+                        m_logger->debug("center %d %d %d-%d/2",margin,relativeOffset,m_parentLength,m_length);
                     } else {
                         if (pos->isFlow()) {
                             relativeOffset += m_parent->getFlowIndex();
@@ -183,7 +186,7 @@ namespace DevRelief{
                 m_overflow = pos->getOverflow();
                 m_logger->debug("Overflow %d (%d/%d)",m_overflow,m_offset,m_length);
                 if (pos->isFlow()) {
-                    m_parent->setFlowIndex(m_relativeOffset+m_length);
+                    m_parent->setFlowIndex(m_offset+m_relativeOffset+m_length);
                 }
                 m_logger->debug("offset=%d relativeOffset=%d length=%d  parentLength=%d  op=%d unit=%d overflow=%d",m_offset,m_relativeOffset,m_length,m_parentLength,pos->getHSLOperation(),m_unit,m_overflow);
             }
@@ -210,13 +213,18 @@ namespace DevRelief{
                     if (index >= m_offset+m_length) {index = m_offset+m_length-1;}
                 }
                 int tidx = index + m_relativeOffset;
-                m_logger->never("translated index  %d (%d)  offset=%d length=%d ==>%d",origIndex,index,m_offset, m_length,tidx);
+                m_logger->debug("translated index  %d (%d)  offset=%d length=%d ==>%d",origIndex,index,m_offset, m_length,tidx);
                 return tidx;
             }
 
             
             virtual HSLOperation translateOp(HSLOperation op) {
+                m_logger->debug("ScriptHSLStrip.translateOp %d",op);
                 return op;
+            }
+
+            virtual int getParentLength() {
+                return m_parent->getLength();
             }
 
             IScriptHSLStrip* m_parent;
@@ -299,6 +307,7 @@ namespace DevRelief{
 
             void setHue(int16_t hue,int index, HSLOperation op) override {
                 if (!isPositionValid(index)) { return;}
+                m_logger->debug("RootStrip.setHue %d %d",hue,index);
                 m_base->setHue(translateIndex(index),hue,translateOp(op));
             }
 
@@ -334,10 +343,10 @@ namespace DevRelief{
 
         protected:
             virtual HSLOperation translateOp(HSLOperation op) {
-                m_logger->never("root translate %x op %d %d",m_position,op,m_position->getHSLOperation());
-                HSLOperation pop = m_position ? m_position->getHSLOperation() : ADD;
+                m_logger->debug("root translate %x op %d %d",m_position,op,m_position->getHSLOperation());
+                
                 if (op == INHERIT || op == UNSET) {
-                    return pop;
+                    op = m_position ? m_position->getHSLOperation() : ADD;
                 }
                 return op;
             }
@@ -363,6 +372,7 @@ namespace DevRelief{
                 m_strip = strip;
                 m_context = context;
                 m_operation = op;
+                SET_LOGGER(ScriptHSLStripLogger);
             }
 
             void setIndex(int p) {
@@ -373,6 +383,7 @@ namespace DevRelief{
 
 
             void setHue(int hue) override {
+                m_logger->debug("Set hue %d %d",m_index,hue);
                 m_strip->setHue(hue,m_index,m_operation);
             }
             void setSaturation(int saturation) override {
@@ -393,6 +404,7 @@ namespace DevRelief{
             HSLOperation m_operation;
             IScriptHSLStrip* m_strip;
             IScriptContext * m_context;
+            DECLARE_LOGGER();
     };
 
     class DrawStrip : public ScriptHSLStrip {
@@ -412,7 +424,7 @@ namespace DevRelief{
             void eachLED(auto&& drawer) {
                 
                 HSLOperation op = m_position->getHSLOperation();
-                m_logger->never("eachLED HSL op: %d",op);
+                m_logger->debug("eachLED HSL op: %d",op);
                 DrawLED led(this,m_context,op);
                 if (m_length == 0) {
                     return;
@@ -421,6 +433,7 @@ namespace DevRelief{
                 if (domain) { domain->setPosition(0,0,m_length-1); }
                 int count = abs(m_length);
                 int neg = m_length<0?-1 : 1;
+                m_logger->debug("drawStrip %d",count);
                 for(int i=0;i<count;i++){
                     if (domain) {domain->setPos(i);}
                     led.setIndex(i*neg);

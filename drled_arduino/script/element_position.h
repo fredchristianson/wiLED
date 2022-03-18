@@ -300,7 +300,7 @@ namespace DevRelief {
                 IJsonElement * gap = json->getPropertyValue("gap");
 
                 if (offsetValue || lengthValue || stripNumberValue ||
-                    clip || wrap || absolute || cover || center || flow || unit || reverse || gap){
+                    clip || wrap || absolute || cover || center || flow || unit || reverse || gap || op){
                         if(m_properties == NULL || m_properties == &DEFAULT_PROPERTIES) {
                             m_logger->debug("create properties %x (default=%x)",m_properties,&DEFAULT_PROPERTIES);
                             m_properties = new PositionProperties();
@@ -346,7 +346,7 @@ namespace DevRelief {
             bool isClip() const { return m_properties->isClip();}
             bool isWrap() const { return m_properties->isWrap();}
             bool isCenter() const { return m_properties->isCenter();}
-            bool isFlow() const { return m_properties->isFlow() && !m_properties->hasStrip() && !m_properties->useRootStrip() && !m_properties->isCover() && (hasOffset() || hasLength());}
+            bool isFlow() const { return m_properties->isFlow() && !m_properties->hasStrip() && !m_properties->useRootStrip() && !m_properties->isCover();}
             bool isCover() const { return m_properties->isCover();}
             bool isReverse() const { return m_properties->isReverse();}
             bool isPositionAbsolute() const { return m_properties->useRootStrip();}
